@@ -2,8 +2,7 @@ import torch
 import numpy as np
 
 from body_visualizer.tools.vis_tools import render_smpl_params
-from body_visualizer.tools.vis_tools import imagearray2file
-from body_visualizer.tools.vis_tools import show_image
+from body_visualizer.tools.vis_tools import imagearray2file, show_image
 
 # ====================================================================================================
 
@@ -14,12 +13,10 @@ from os import path as osp
 support_dir = '../support_data/dowloads'
 expr_dir = osp.join(support_dir, 'vposer_v2_05')  # 'TRAINED_MODEL_DIRECTORY'  in this directory the trained model along with the model code exist
 bm_fname = osp.join(support_dir, 'models/smplx/neutral/model.npz')  # 'PATH_TO_SMPLX_model.npz'  obtain from https://smpl-x.is.tue.mpg.de/downloads
-sample_amass_fname = osp.join(support_dir, 'amass_sample.npz')  # a sample npz file from AMASS
 
 print(
     f"expr_dir = {expr_dir}\n"
     f"bm_fname = {bm_fname}\n"
-    f"sample_amass_fname = {sample_amass_fname}\n"
 )
 
 # ====================================================================================================
@@ -43,38 +40,13 @@ vp = vp.to('cuda')
 
 # ====================================================================================================
 
-# Prepare the pose_body from amass sample
-amass_body_pose = np.load(sample_amass_fname)['poses'][:, 3:66]
-amass_body_pose = torch.from_numpy(amass_body_pose).type(torch.float).to('cuda')
+# number of body poses in each batch
+num_poses = 9
 
-print(
-    f"amass_body_pose.shape = {amass_body_pose.shape}"
-)
-
-amass_body_poZ = vp.encode(amass_body_pose).mean
-
-print(
-    f"amass_body_poZ.shape = {amass_body_poZ.shape}"
-)
+# will a generate Nx1x21x3 tensor of body poses
+sampled_pose_body = vp.sample_poses(num_poses=num_poses)['pose_body'].contiguous().view(num_poses, -1)
+images = render_smpl_params(bm, {'pose_body': sampled_pose_body}).reshape(3, 3, 1, 400, 400, 3)
+img = imagearray2file(images)
+show_image(np.array(img[0]))
 
 # ====================================================================================================
-
-amass_body_pose_rec = vp.decode(amass_body_poZ)['pose_body'].contiguous().view(-1, 63)
-
-print(
-    f"amass_body_pose_rec.shape = {amass_body_pose_rec.shape}"
-)
-
-# Let's visualize the original pose and the reconstructed one:
-
-t = np.random.choice(len(amass_body_pose))
-
-all_pose_body = torch.stack([amass_body_pose[t], amass_body_pose_rec[t]])
-
-print(
-    f"all_pose_body.shape = {all_pose_body.shape}"
-)
-
-images = render_smpl_params(bm, {'pose_body': all_pose_body}).reshape(1, 2, 1, 400, 400, 3)
-img = imagearray2file(images)
-show_image(img[0])
