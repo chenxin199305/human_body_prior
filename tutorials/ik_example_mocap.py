@@ -43,20 +43,22 @@ from torch import nn
 from human_body_prior.models.ik_engine import IK_Engine
 from os import path as osp
 
+
 def compute_vertex_normal_batched(vertices, indices):
     from pytorch3d.structures import Meshes
-    return Meshes(verts=vertices, faces=indices.expand(len(vertices), -1, -1)).verts_normals_packed().view(-1, vertices.shape[1],3)
+    return Meshes(verts=vertices, faces=indices.expand(len(vertices), -1, -1)).verts_normals_packed().view(-1, vertices.shape[1], 3)
+
 
 class SourceKeyPoints(nn.Module):
     def __init__(self,
                  bm: Union[str, BodyModel],
                  vids: Iterable[int],
-                 kpts_colors: Union[np.ndarray, None] = None ,
+                 kpts_colors: Union[np.ndarray, None] = None,
                  ):
         super(SourceKeyPoints, self).__init__()
 
         self.bm = BodyModel(bm, persistant_buffer=False) if isinstance(bm, str) else bm
-        self.bm_f = []#self.bm.f
+        self.bm_f = []  # self.bm.f
         self.vids = vids
         self.kpts_colors = np.array([Color('grey').rgb for _ in vids]) if kpts_colors == None else kpts_colors
 
@@ -66,15 +68,15 @@ class SourceKeyPoints(nn.Module):
         vn = compute_vertex_normal_batched(new_body.v, new_body.f)
         virtual_markers = new_body.v[:, self.vids] + 0.0095 * vn[:, self.vids]
 
-        return {'source_kpts':virtual_markers, 'body': new_body}
+        return {'source_kpts': virtual_markers, 'body': new_body}
+
 
 support_dir = '../support_data/dowloads'
-vposer_expr_dir = osp.join(support_dir,'vposer_v2_05') #'TRAINED_MODEL_DIRECTORY'  in this directory the trained model along with the model code exist
-bm_fname =  osp.join(support_dir,'models/smplx/neutral/model.npz')#'PATH_TO_SMPLX_model.npz'  obtain from https://smpl-x.is.tue.mpg.de/downloads
-sample_amass_fname = osp.join(support_dir, 'amass_sample.npz')# a sample npz file from AMASS
+vposer_expr_dir = osp.join(support_dir, 'vposer_v2_05')  # 'TRAINED_MODEL_DIRECTORY'  in this directory the trained model along with the model code exist
+bm_fname = osp.join(support_dir, 'models/smplx/neutral/model.npz')  # 'PATH_TO_SMPLX_model.npz'  obtain from https://smpl-x.is.tue.mpg.de/downloads
+sample_amass_fname = osp.join(support_dir, 'amass_sample.npz')  # a sample npz file from AMASS
 
 comp_device = torch.device('cuda')
-
 
 sample_amass = np.load(sample_amass_fname, allow_pickle=True)
 
@@ -91,9 +93,9 @@ data_loss = torch.nn.MSELoss(reduction='sum')
 
 stepwise_weights = [
     {'data': 10., 'poZ_body': .01, 'betas': .5},
-                    ]
+]
 # optimizer_args = {'type':'ADAM', 'max_iter':500, 'lr':1e-1, 'tolerance_change': 1e-5}
-optimizer_args = {'type':'LBFGS', 'max_iter':300, 'lr':1, 'tolerance_change': 1e-4, 'history_size':200}
+optimizer_args = {'type': 'LBFGS', 'max_iter': 300, 'lr': 1, 'tolerance_change': 1e-4, 'history_size': 200}
 ik_engine = IK_Engine(vposer_expr_dir=vposer_expr_dir,
                       verbosity=2,
                       display_rc=(2, 2),

@@ -37,6 +37,8 @@ from body_visualizer.tools.vis_tools import imagearray2file
 from body_visualizer.tools.vis_tools import render_smpl_params
 from human_body_prior.body_model.body_model import BodyModel
 from human_body_prior.tools.omni_tools import get_support_data_dir
+
+
 class SourceKeyPoints(nn.Module):
     def __init__(self,
                  bm: Union[str, BodyModel],
@@ -99,7 +101,7 @@ def transform_smpl_coordinate(bm_fname: Path, trans: np.ndarray,
 
 
 def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_render=False, comp_device='cuda:0',
-                                 surface_model_type = 'smplx', gender = 'neutral', batch_size=128, verbosity=0):
+                                 surface_model_type='smplx', gender='neutral', batch_size=128, verbosity=0):
     """
 
     :param skeleton_movie_fname: either a result npy file or a motion numpy array [nframes, njoints, 3]
@@ -111,10 +113,10 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
     """
 
     support_base_dir = get_support_data_dir()
-    support_dir = osp.join(support_base_dir, 'dowloads')#'../../../support_data/dowloads'
+    support_dir = osp.join(support_base_dir, 'dowloads')  # '../../../support_data/dowloads'
     logger.info(f'found support_dir: {support_dir}')
     # 'TRAINED_MODEL_DIRECTORY'  in this directory the trained model along with the model code exist
-    vposer_expr_dir = osp.join(support_dir,'vposer_v2_05')
+    vposer_expr_dir = osp.join(support_dir, 'vposer_v2_05')
 
     # 'PATH_TO_SMPLX_model.npz'  obtain from https://smpl-x.is.tue.mpg.de/downloads
     bm_fname = osp.join(support_dir, f'models/{surface_model_type}/{gender}/model.npz')
@@ -148,7 +150,6 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
     else:
         # comp_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-
         red = Color("red")
         blue = Color("blue")
         kpts_colors = [c.rgb for c in list(red.range_to(blue, n_joints))]
@@ -171,7 +172,7 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
 
         all_results = {}
         batched_frames = create_list_chunks(np.arange(len(motion)), batch_size, overlap_size=0, cut_smaller_batches=False)
-        if verbosity<2:
+        if verbosity < 2:
             batched_frames = tqdm(batched_frames, desc='VPoser Advanced IK')
         for cur_frame_ids in batched_frames:
 
@@ -208,8 +209,8 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
         smpl_dict = np.load(bm_fname)
         mean_pose_hand = np.repeat(np.concatenate([smpl_dict['hands_meanl'], smpl_dict['hands_meanr']])[None], axis=0, repeats=len(motion))
 
-        body_parms = {**d, 'betas': np.repeat(d['betas'][None], axis=0, repeats=len(motion)), 'pose_hand':mean_pose_hand}
-        body_parms = {k:torch.from_numpy(v) for k,v in body_parms.items() if k in ['root_orient', 'trans', 'pose_body', 'pose_hand']}
+        body_parms = {**d, 'betas': np.repeat(d['betas'][None], axis=0, repeats=len(motion)), 'pose_hand': mean_pose_hand}
+        body_parms = {k: torch.from_numpy(v) for k, v in body_parms.items() if k in ['root_orient', 'trans', 'pose_body', 'pose_hand']}
 
         img_array = render_smpl_params(bm, body_parms, [-90, 0, 0])[None, None]
         imagearray2file(img_array, outpath=render_out_fname, fps=30)
@@ -217,9 +218,11 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
 
     logger.info(f'You can visualize these results as any amass npz file or in Blender via blender_smplx_addon.')
 
+
 if __name__ == '__main__':
     import argparse
     from glob import glob
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, help='skeleton movie.mp4 filename that is to be converted into SMPL')
     parser.add_argument("--pattern", type=str, help='filename pattern for skeleton */*/movies.mp4 to be converted into SMPL')
@@ -238,11 +241,11 @@ if __name__ == '__main__':
         raise ValueError('either input or pattern should be provided')
     if not params.input is None:
         convert_mdm_mp4_to_amass_npz(skeleton_movie_fname=params.input,
-                                 surface_model_type=params.model_type,
-                                 gender=params.gender,
-                                 batch_size=params.batch_size,
-                                 save_render=params.save_render,
-                                 verbosity=params.verbosity)
+                                     surface_model_type=params.model_type,
+                                     gender=params.gender,
+                                     batch_size=params.batch_size,
+                                     save_render=params.save_render,
+                                     verbosity=params.verbosity)
     else:
         assert params.pattern is not None
         mp4_fnames = glob(params.pattern)
