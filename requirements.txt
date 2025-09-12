@@ -13,3 +13,4 @@ pytorch3d
 omegaconf
 loguru
 
+trimesh
