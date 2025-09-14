@@ -20,7 +20,7 @@ VPoser has the following features:
 
 ### Environment Setup
 
-Conda environment is needed at first, then run the following command to install required packages.
+1. Install dependencies:
 
 ```bash
 # Create conda environment
@@ -31,13 +31,52 @@ conda activate hbp
 bash install_env.sh
 ```
 
+2. Change dependency code to enable plot image using matplotlib (Due to codebase bugs):
+
+```python
+# In body_visualizer/tools/vis_tools.py
+import numpy as np
+import cv2
+import os
+import trimesh
+
+
+def show_image(img_ndarray):
+    '''
+    Visualize rendered body images resulted from render_smpl_params in Jupyter notebook
+    :param img_ndarray: Nxim_hxim_wx3
+    '''
+    import matplotlib.pyplot as plt
+    import cv2
+    fig = plt.figure(figsize=(4, 4), dpi=300)
+    ax = fig.gca()
+
+    img = img_ndarray.astype(np.uint8)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    ax.imshow(img)
+    plt.axis('off')
+
+    plt.show()  # ADD THIS LINE
+
+    # fig.canvas.draw()
+    # return True
+```
+
+3. 准备人体模型文件：
+
+    - SMPL-X
+        - https://download.is.tue.mpg.de/download.php?domain=smplx&sfile=models_smplx_v1_1.zip
+        - 解压到 `../support_data/downloads/models/smplx/`
+    - VPoser V02_25:
+        - https://download.is.tue.mpg.de/download.php?domain=smplx&sfile=V02_05.zip
+        - 解压到 `../support_data/downloads/vposer_v2_05/`
+
 ## Tutorials
 
-![alt text](../support_data/latent_interpolation_1.gif "Interpolation of novel poses on the smoother VPoser latent space.")
-![alt text](../support_data/latent_interpolation_2.gif "Interpolation of novel poses on the smoother VPoser latent space.")
-
-* [VPoser Body poZ Space for SMPL Body Model Family](../tutorials/vposer.ipynb)
-* [Sampling Novel Body Poses with VPoser](../tutorials/vposer_sampling.ipynb)
+```shell
+python ./tutorials/vposer.py
+python ./tutorials/vposer_sampling.py
+```
 
 ## Advanced IK Capabilities
 

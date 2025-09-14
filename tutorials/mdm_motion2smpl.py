@@ -113,7 +113,7 @@ def convert_mdm_mp4_to_amass_npz(skeleton_movie_fname, out_fname=None, save_rend
     """
 
     support_base_dir = get_support_data_dir()
-    support_dir = osp.join(support_base_dir, 'dowloads')  # '../../../support_data/dowloads'
+    support_dir = osp.join(support_base_dir, 'downloads')  # '../../../support_data/downloads'
     logger.info(f'found support_dir: {support_dir}')
     # 'TRAINED_MODEL_DIRECTORY'  in this directory the trained model along with the model code exist
     vposer_expr_dir = osp.join(support_dir, 'vposer_v2_05')
