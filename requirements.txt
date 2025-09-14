@@ -5,7 +5,7 @@ git+https://github.com/MPI-IS/mesh.git
 tqdm
 numpy
 dotmap
-pytorch-lightning
+pytorch-lightning<1.7
 PyYAML
 torch
 transforms3d==0.3.1

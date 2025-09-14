@@ -95,7 +95,7 @@ class VPoserTrainer(LightningModule):
         else:
             self.renderer = None
 
-        self.example_input_array = {'pose_body':torch.ones(vp_ps.train_parms.batch_size, 63),}
+        self.example_input_array = {'pose_body': torch.ones(vp_ps.train_parms.batch_size, 63), }
         self.vp_ps = vp_ps
 
     def forward(self, pose_body):
@@ -104,12 +104,12 @@ class VPoserTrainer(LightningModule):
 
     def _get_data(self, split_name):
 
-        assert split_name in ('train', 'vald', 'test')
+        assert split_name in ('train', 'valid', 'test')
 
-        split_name = split_name.replace('vald', 'vald')
+        split_name = split_name.replace('valid', 'valid')
 
         assert dataset_exists(self.dataset_dir), FileNotFoundError('Dataset does not exist dataset_dir = {}'.format(self.dataset_dir))
-        dataset = VPoserDS(osp.join(self.dataset_dir, split_name), data_fields = ['pose_body'])
+        dataset = VPoserDS(osp.join(self.dataset_dir, split_name), data_fields=['pose_body'])
 
         assert len(dataset) != 0, ValueError('Dataset has nothing in it!')
 
@@ -139,7 +139,7 @@ class VPoserTrainer(LightningModule):
         return self._get_data('train')
 
     def val_dataloader(self):
-        return self._get_data('vald')
+        return self._get_data('valid')
 
     def configure_optimizers(self):
         params_count = lambda params: sum(p.numel() for p in params if p.requires_grad)
@@ -193,19 +193,19 @@ class VPoserTrainer(LightningModule):
             loc=torch.zeros((bs, latentD), device=device, requires_grad=False),
             scale=torch.ones((bs, latentD), device=device, requires_grad=False))
         weighted_loss_dict = {
-            'loss_kl':loss_kl_wt * torch.mean(torch.sum(torch.distributions.kl.kl_divergence(q_z, p_z), dim=[1])),
+            'loss_kl': loss_kl_wt * torch.mean(torch.sum(torch.distributions.kl.kl_divergence(q_z, p_z), dim=[1])),
             'loss_mesh_rec': loss_rec_wt * v2v
         }
 
         if (self.current_epoch < self.vp_ps.train_parms.keep_extra_loss_terms_until_epoch):
             # breakpoint()
-            weighted_loss_dict['matrot'] = loss_matrot_wt * geodesic_loss(drec['pose_body_matrot'].view(-1,3,3), aa2matrot(dorig['pose_body'].view(-1, 3)))
+            weighted_loss_dict['matrot'] = loss_matrot_wt * geodesic_loss(drec['pose_body_matrot'].view(-1, 3, 3), aa2matrot(dorig['pose_body'].view(-1, 3)))
             weighted_loss_dict['jtr'] = loss_jtr_wt * l1_loss(bm_rec.Jtr, bm_orig.Jtr)
 
         weighted_loss_dict['loss_total'] = torch.stack(list(weighted_loss_dict.values())).sum()
 
         with torch.no_grad():
-            unweighted_loss_dict = {'v2v': torch.sqrt(torch.pow(bm_rec.v-bm_orig.v, 2).sum(-1)).mean()}
+            unweighted_loss_dict = {'v2v': torch.sqrt(torch.pow(bm_rec.v - bm_orig.v, 2).sum(-1)).mean()}
             unweighted_loss_dict['loss_total'] = torch.cat(
                 list({k: v.view(-1) for k, v in unweighted_loss_dict.items()}.values()), dim=-1).sum().view(1)
 
@@ -221,7 +221,7 @@ class VPoserTrainer(LightningModule):
 
         tensorboard_logs = {'train_loss': train_loss}
         progress_bar = {k: c2c(v) for k, v in loss['weighted_loss'].items()}
-        return {'loss': train_loss, 'progress_bar':progress_bar,  'log': tensorboard_logs}
+        return {'loss': train_loss, 'progress_bar': progress_bar, 'log': tensorboard_logs}
 
     def validation_step(self, batch, batch_idx):
 
@@ -230,29 +230,26 @@ class VPoserTrainer(LightningModule):
         loss = self._compute_loss(batch, drec)
         val_loss = loss['unweighted_loss']['loss_total']
 
-        if self.renderer is not None and self.global_rank == 0 and batch_idx % 500==0 and np.random.rand()>0.5:
-            out_fname = makepath(self.work_dir, 'renders/vald_rec_E{:03d}_It{:04d}_val_loss_{:.2f}.png'.format(self.current_epoch, batch_idx, val_loss.item()), isfile=True)
-            self.renderer([batch, drec], out_fname = out_fname)
+        if self.renderer is not None and self.global_rank == 0 and batch_idx % 500 == 0 and np.random.rand() > 0.5:
+            out_fname = makepath(self.work_dir, 'renders/valid_rec_E{:03d}_It{:04d}_val_loss_{:.2f}.png'.format(self.current_epoch, batch_idx, val_loss.item()), isfile=True)
+            self.renderer([batch, drec], out_fname=out_fname)
             dgen = self.vp_model.sample_poses(self.vp_ps.logging.num_bodies_to_display)
-            out_fname = makepath(self.work_dir, 'renders/vald_gen_E{:03d}_I{:04d}.png'.format(self.current_epoch, batch_idx), isfile=True)
-            self.renderer([dgen], out_fname = out_fname)
-
+            out_fname = makepath(self.work_dir, 'renders/valid_gen_E{:03d}_I{:04d}.png'.format(self.current_epoch, batch_idx), isfile=True)
+            self.renderer([dgen], out_fname=out_fname)
 
         progress_bar = {'v2v': val_loss}
         return {'val_loss': c2c(val_loss), 'progress_bar': progress_bar, 'log': progress_bar}
 
     def validation_epoch_end(self, outputs):
-        metrics = {'val_loss': np.nanmean(np.concatenate([v['val_loss'] for v in outputs])) }
+        metrics = {'val_loss': np.nanmean(np.concatenate([v['val_loss'] for v in outputs]))}
 
         if self.global_rank == 0:
-
             self.text_logger('Epoch {}: {}'.format(self.current_epoch, ', '.join('{}:{:.2f}'.format(k, v) for k, v in metrics.items())))
             self.text_logger('lr is {}'.format([pg['lr'] for opt in self.trainer.optimizers for pg in opt.param_groups]))
 
         metrics = {k: torch.as_tensor(v) for k, v in metrics.items()}
 
         return {'val_loss': metrics['val_loss'], 'log': metrics}
-
 
     @rank_zero_only
     def on_train_end(self):
@@ -285,7 +282,6 @@ def create_expr_message(ps):
 
 
 def train_vposer_once(_config):
-
     resume_training_if_possible = True
 
     model = VPoserTrainer(_config)
@@ -310,13 +306,13 @@ def train_vposer_once(_config):
     resume_from_checkpoint = None
     if resume_training_if_possible:
         available_ckpts = sorted(glob.glob(osp.join(snapshots_dir, '*.ckpt')), key=os.path.getmtime)
-        if len(available_ckpts)>0:
+        if len(available_ckpts) > 0:
             resume_from_checkpoint = available_ckpts[-1]
             model.text_logger('Resuming the training from {}'.format(resume_from_checkpoint))
 
     trainer = pl.Trainer(gpus=1,
                          weights_summary='top',
-                         distributed_backend = 'ddp',
+                         distributed_backend='ddp',
                          # replace_sampler_ddp=False,
                          # accumulate_grad_batches=4,
                          # profiler=False,
@@ -326,9 +322,7 @@ def train_vposer_once(_config):
                          # limit_val_batches=0.02,
                          # num_sanity_val_steps=2,
                          plugins=[DDPPlugin(find_unused_parameters=False)],
-
                          callbacks=[lr_monitor, early_stop_callback, checkpoint_callback],
-
                          max_epochs=model.vp_ps.train_parms.num_epochs,
                          logger=logger,
                          resume_from_checkpoint=resume_from_checkpoint

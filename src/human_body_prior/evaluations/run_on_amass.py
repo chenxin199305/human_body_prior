@@ -37,7 +37,7 @@ from tqdm import tqdm
 
 
 def evaluate_model(dataset_dir, vp_model, vp_ps, batch_size=5, save_upto_bnum=10, splitname='test'):
-    assert splitname in ['test', 'train', 'vald']
+    assert splitname in ['test', 'train', 'valid']
     comp_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     ds_name = dataset_dir.split('/')[-2]
@@ -80,7 +80,7 @@ def evaluate_error(dataset_dir, vp_model, vp_ps, batch_size=512):
 
     final_errors = {}
     # for splitname in ['test']:
-    for splitname in ['test', 'train', 'vald']:
+    for splitname in ['test', 'train', 'valid']:
 
         ds = VPoserDS(dataset_dir=os.path.join(dataset_dir, splitname))
         print('%s dataset size: %s'%(splitname,len(ds)))
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
     print('dataset_dir: %s'%dataset_dir)
     # # # for splitname in ['test']:
-    # for splitname in ['train', 'test', 'vald']:
+    # for splitname in ['train', 'test', 'valid']:
     #    evaluate_model(dataset_dir, vp_model, vp_ps, batch_size=3, save_upto_bnum=5, splitname=splitname)
 
     final_errors = evaluate_error(dataset_dir, vp_model, vp_ps, batch_size=512)

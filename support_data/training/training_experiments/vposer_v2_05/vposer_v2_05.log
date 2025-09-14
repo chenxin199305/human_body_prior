@@ -1,0 +1,4 @@
+[vposer_v2_05] -- Creating pytorch dataset at ../../../../support_data/training/data/V02_03
+[vposer_v2_05] -- Using AMASS body parameters from support_data/downloads/amass/smplx_neutral
+[vposer_v2_05] -- Preparing VPoser data for split valid
+[vposer_v2_05] -- Found 0 sequences from BMLrub_valid.

@@ -11,11 +11,11 @@ Here we follow the recommended data splits of AMASS, that is:
 
 ```python
 amass_splits = {
-    'vald': ['HumanEva', 'MPI_HDM05', 'SFU', 'MPI_mosh'],
+    'valid': ['HumanEva', 'MPI_HDM05', 'SFU', 'MPI_mosh'],
     'test': ['Transitions_mocap', 'SSM_synced'],
     'train': ['CMU', 'MPI_Limits', 'TotalCapture', 'Eyes_Japan_Dataset', 'KIT', 'BML', 'EKUT', 'TCD_handMocap', 'ACCAD']
 }
-amass_splits['train'] = list(set(amass_splits['train']).difference(set(amass_splits['test'] + amass_splits['vald'])))
+amass_splits['train'] = list(set(amass_splits['train']).difference(set(amass_splits['test'] + amass_splits['valid'])))
 ```
 
 During this stage, we also subsample the original data, so that we only take every some frames of the original mocap
@@ -47,11 +47,11 @@ logger = log2file(os.path.join(vposer_datadir, '%s.log' % (expr_code)))
 logger('[%s] Preparing data for training VPoser.'%expr_code)
 
 amass_splits = {
-    'vald': ['HumanEva', 'MPI_HDM05', 'SFU', 'MPI_mosh'],
+    'valid': ['HumanEva', 'MPI_HDM05', 'SFU', 'MPI_mosh'],
     'test': ['Transitions_mocap', 'SSM_synced'],
     'train': ['CMU', 'MPI_Limits', 'TotalCapture', 'Eyes_Japan_Dataset', 'KIT', 'BML', 'EKUT', 'TCD_handMocap', 'ACCAD']
 }
-amass_splits['train'] = list(set(amass_splits['train']).difference(set(amass_splits['test'] + amass_splits['vald'])))
+amass_splits['train'] = list(set(amass_splits['train']).difference(set(amass_splits['test'] + amass_splits['valid'])))
 
 prepare_vposer_datasets(vposer_datadir,amass_splits,amass_dir,logger=logger)
 ```

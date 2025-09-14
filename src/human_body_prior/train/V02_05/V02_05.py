@@ -27,6 +27,7 @@ import os.path as osp
 from human_body_prior.tools.configurations import load_config
 from human_body_prior.train.vposer_trainer import train_vposer_once
 
+
 def main():
     expr_id = 'vposer_v2_05'
 

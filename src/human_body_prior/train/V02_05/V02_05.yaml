@@ -53,24 +53,24 @@ data_parms:
   amass_dir: support_data/downloads/amass/smplx_neutral
   num_timeseq_frames: 1
   amass_splits:
-    vald:
-#      - HumanEva
-#      - MPI_HDM05
-#      - SFU
-#      - MPI_mosh
-      - BMLrub_vald
+    valid:
+      #      - HumanEva
+      #      - MPI_HDM05
+      #      - SFU
+      #      - MPI_mosh
+      - BMLrub_valid
     train:
       - CMU
       - BMLrub_train
-#      - MPI_Limits
-#      - TotalCapture
-#      - Eyes_Japan_Dataset
-#      - KIT
-#      - BMLrub
-#      - EKUT
-#      - TCD_handMocap
-#      - ACCAD
-#      - BMLmovi
+    #      - MPI_Limits
+    #      - TotalCapture
+    #      - Eyes_Japan_Dataset
+    #      - KIT
+    #      - BMLrub
+    #      - EKUT
+    #      - TCD_handMocap
+    #      - ACCAD
+    #      - BMLmovi
     test:
       - BMLrub_test
 #      - Transitions_mocap
@@ -79,6 +79,6 @@ data_parms:
 
 
 model_params:
-  num_neurons : 512
-  latentD : 32
+  num_neurons: 512
+  latentD: 32
 
