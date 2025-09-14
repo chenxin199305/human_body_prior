@@ -1,9 +1,9 @@
 # Train VPoser from Scratch
-To train your own VPoser with new configuration duplicate the provided **V02_05** folder while setting a new experiment ID 
-and change the settings as you desire. 
-First you would need to download the 
-[AMASS](https://amass.is.tue.mpg.de/) dataset, then following the [data preparation tutorial](../data/README.md)
-prepare the data for training. 
+
+To train your own VPoser with new configuration duplicate the provided **V02_05** folder while setting a new experiment ID
+and change the settings as you desire.
+First you would need to download the [AMASS](https://amass.is.tue.mpg.de/) dataset, 
+then following the [data preparation tutorial](../data/README.md) prepare the data for training.
 Following is a code snippet for training that can be found in the [example training experiment](https://github.com/nghorbani/human_body_prior/blob/master/src/human_body_prior/train/V02_05/V02_05.py):
 
 ```python
@@ -12,6 +12,7 @@ import os.path as osp
 
 from human_body_prior.tools.configurations import load_config
 from human_body_prior.train.vposer_trainer import train_vposer_once
+
 
 def main():
     expr_id = 'vposer_v2_05'
@@ -35,7 +36,8 @@ def main():
     for job in total_jobs:
         train_vposer_once(job)
 ``` 
-The above code uses yaml configuration files to handle experiment settings. 
-It loads the default settings in *<expr_id>.yaml* and overloads it with your new args. 
+
+The above code uses yaml configuration files to handle experiment settings.
+It loads the default settings in *<expr_id>.yaml* and overloads it with your new args.
 
 The training code, will dump a log file along with tensorboard readable events file.
