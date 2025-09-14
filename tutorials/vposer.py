@@ -60,6 +60,7 @@ print(
     f"amass_body_pose.shape = {amass_body_pose.shape}"
 )
 
+# raw data -> vp -> latent space
 amass_body_poZ = vp.encode(amass_body_pose).mean
 
 print(
@@ -68,6 +69,7 @@ print(
 
 # ====================================================================================================
 
+# latent space -> vp -> reconstructed data
 amass_body_pose_rec = vp.decode(amass_body_poZ)["pose_body"].contiguous().view(-1, 63)
 
 print(
